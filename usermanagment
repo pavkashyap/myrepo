@@ -1,0 +1,201 @@
+import StudioPage from '../../Studio/StudioPage'
+/// <reference types="cypress" />
+
+class UserManagement extends StudioPage {
+    constructor () {
+        super()
+        this.url = '/sl/studio.html#/manager/users'
+        this.userPageCss = '[aria-label = "Manage users"]'
+        this.userPageTitleCss = '.title'
+        this.userCountCss = '.count'
+        this.tableHeaderCss = 'th.slui-table__th, sl-table-header-cell'
+        this.rowsPerPageLabelCss = '.rows-per-page-label'
+        this.paginationFooterCss = '.slui-tablePages'
+        this.dowloandUserListCss = '.filter-bar-action'
+        this.searchBoxCss = '[qa-id="manager-users-search-input"]'
+        this.addUserButtonCss = '[qa-id="manager-users-add-button"]'
+        this.checkboxCss = '[qa-id="manager-users-list-select-all-wrapper"]'
+        this.filterAppsDropdownCss = '[qa-id="manager-users-filter-apps-dropdownList"]'
+        this.filterDropdownListCss = '.slui-dropdown-list-item-container' 
+        this.filterRoleDropdownCss = '[qa-id="manager-users-filter-role-dropdownList"]'
+
+        this.labelsCss = '.slui-v3-label'
+        this.firstNameInputCss = '[qa-id="manager-users-create-firstname-input"]'
+        this.lastNameInputCss = '[qa-id="manager-users-create-lastname-input"]'
+        this.emailInputCss = '[qa-id="manager-users-create-email-input"]'
+
+        this.appAccessCheckboxCss = '[qa-id="manager-users-details-app-access-checkbox-checkbox"]'
+        this.radioLabelCss = '.slui-v3-radio-label'
+        this.checkboxLabelCss = '.slui-v3-checkbox-label'
+
+
+    }
+
+    get userPage () { return cy.get( this.userPageCss) }
+
+    get userPageTitle () {
+        return cy.get(this.userPageTitleCss)
+    }
+
+    get userCount () {
+        return cy.get(this.roleCountCss)
+    }
+
+    get paginationDropDown () {
+        return cy.getBySel('perpage-dropdown-dropdownList')
+    }
+
+    get paginationFooter () {
+        return cy.get(this.paginationFooterCss)
+    }
+
+    get rowsPerPageLabel () {
+        return cy.get(this.rowsPerPageLabelCss)
+    }
+
+    get searchBox(){
+        return cy.get(this.searchBoxCss)
+    }
+
+    get dowloandUserList(){
+        return cy.get(this.dowloandUserListCss)
+    }
+
+    get addUserButton(){
+        return cy.get(this.addUserButtonCss)
+
+    }
+
+    get checkbox(){
+        return cy.get(this.checkboxCss)
+    }
+
+    get firstNameInput(){
+        return cy.get(this.firstNameInputCss)
+    }
+    get lastNameInput(){
+        return cy.get(this.lastNameInputCss)
+    }
+
+    get emailInput(){
+        return cy.get(this.emailInputCss)
+    }
+
+    clickUserMenu () {
+        this.userPage.click()
+    }
+
+    verifyAppsDropdownList(expectedHeaderNames){
+        cy.get(this.filterAppsDropdownCss).click();
+        cy.get(this.filterDropdownListCss)
+            .then((headers)=>{
+                const actualHeaderNames = Array.from(headers).map((header) => header.innerText.trim());
+                expect(JSON.stringify(actualHeaderNames)).to.equal(JSON.stringify(expectedHeaderNames));
+        });
+    }
+
+    verifyLabels(expectedLabelNames){
+        cy.get(this.labelsCss)
+            .then((labels)=>{
+                const actuallabelNames = Array.from(labels).map((label) => label.innerText.trim());
+                expect(JSON.stringify(actuallabelNames)).to.equal(JSON.stringify(expectedLabelNames));
+        });
+    }
+
+    verifyRadioLabel(expectedLabelNames){
+        cy.get(this.radioLabelCss)
+            .then((labels)=>{
+                const actuallabelNames = Array.from(labels).map((label) => label.innerText.trim());
+                expect(JSON.stringify(actuallabelNames)).to.equal(JSON.stringify(expectedLabelNames));
+        });
+    }
+
+    verifyCheckBoxLabel(expectedLabelNames){
+        cy.get(this.checkboxLabelCss)
+            .then((labels)=>{
+                const actuallabelNames = Array.from(labels).map((label) => label.innerText.trim());
+                expect(JSON.stringify(actuallabelNames)).to.equal(JSON.stringify(expectedLabelNames));
+        });
+    }
+
+    verifyRoleDropdownList(expectedHeaderNames){
+        cy.get(this.filterRoleDropdownCss).click();
+        cy.get(this.filterDropdownListCss)
+            .then((headers)=>{
+                const actualHeaderNames = Array.from(headers).map((header) => header.innerText.trim());
+                expect(JSON.stringify(actualHeaderNames)).to.equal(JSON.stringify(expectedHeaderNames));
+        });
+    }
+
+    verifyHeaders (expectedHeaderNames) {
+        cy.get(this.tableHeaderCss)
+            .then((headers)=>{
+                const actualHeaderNames = Array.from(headers).map((header) => header.innerText.trim());
+                expect(JSON.stringify(actualHeaderNames)).to.equal(JSON.stringify(expectedHeaderNames));
+        });
+    }
+
+}
+export default new UserManagement()
+
+
+////////////////////////// 
+
+
+
+import UserManagement from '../../../../pageobjects/Studio/AdminManager/UserManagement'
+
+describe('Brasilia User Management Test Suite', { tags: ['smoke', '@critical', '@regression'] }, function () {
+    let adminUser
+    let basicUser
+    let basicuserEmail = 'autoregplatform+cy_basc1@gmail.com'
+    let envAdminEmail = 'autoregplatform+cy_admn1@gmail.com'
+
+    before(function () {
+        cy.fetchAdminUser().then(user => {
+            adminUser = user,
+            user.org = ENV.orgs.primaryOrg
+        })
+        cy.fetchBasicUser().then(user => {
+            basicUser = user,
+            user.org = ENV.orgs.primaryOrg
+        })
+    })
+    beforeEach(() => {
+        UserManagement.login(adminUser)
+    });
+    after(() => {
+        cy.logout()
+    })
+
+    it('C21938831 Verify all the fields are present in users management pages', { tags: 'C21938831' }, function () {
+        UserManagement.userPageTitle.contains('Users')
+        UserManagement.searchBox.should('be.visible')
+        UserManagement.dowloandUserList.should('be.visible')
+        UserManagement.verifyHeaders(['','Name', 'Email', 'Role', 'App access', 'Date added',''])
+        UserManagement.checkbox.should('be.visible')
+        UserManagement.addUserButton.should('be.visible')
+        UserManagement.paginationDropDown.should('be.visible')
+        UserManagement.paginationDropDown.contains('25')
+        UserManagement.rowsPerPageLabel.should('be.visible')
+        UserManagement.rowsPerPageLabel.contains('Rows per page')
+        UserManagement.paginationFooter.should('be.visible')
+        UserManagement.verifyAppsDropdownList(['All apps\nIntelligent Integration Platform (IIP)\nFlows\nAutoSync 1.0'])
+        UserManagement.verifyRoleDropdownList(['All roles\nEnvironment admin\nUser'])
+    })
+
+    it('C21938832 Verify whether user is switch to New User page after click on Add User button', { tags: 'C21938832' }, function () {
+
+        UserManagement.addUserButton.click();
+        UserManagement.userPageTitle.contains('New user')
+        UserManagement.firstNameInput.should('be.visible')
+        UserManagement.lastNameInput.should('be.visible')
+        UserManagement.emailInput.should('be.visible')
+
+        UserManagement.verifyLabels(['First name','Last name', 'Email', 'Role'])
+        UserManagement.verifyRadioLabel(['App & API access', 'API access only', 'Environment admin', 'User'])
+        UserManagement.verifyCheckBoxLabel(['Intelligent Integration Platform (IIP)', 'Flows','AutoSync 1.0'])
+    })
+
+
+})
